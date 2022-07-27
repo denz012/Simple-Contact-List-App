@@ -1,78 +1,226 @@
-// ignore_for_file: unused_import, unnecessary_string_escapes, unused_element
-
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'dart:async';
-import 'package:path_provider/path_provider.dart';
-import 'fileManager.dart';
+import 'package:math_expressions/math_expressions.dart';
 
-void main() => runApp(MyApp());
+void main(){
+  runApp(Calculator());
+}
 
-class MyApp extends StatelessWidget {
-  TextEditingController nametec = TextEditingController();
-  TextEditingController cptec = TextEditingController();
-  TextEditingController emailtec = TextEditingController();
-
+class Calculator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Weclome to my first Aplication',
-      home: Scaffold(
-          appBar: AppBar(
-            title: Text('Welcome User'),
+      debugShowCheckedModeBanner: false,
+      title: 'Calculator',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: SimpleCalculator(),
+    );
+  }
+}
+
+class SimpleCalculator extends StatefulWidget {
+  @override
+  _SimpleCalculatorState createState() => _SimpleCalculatorState();
+}
+
+class _SimpleCalculatorState extends State<SimpleCalculator> {
+
+  String equation = "0";
+  String result = "0";
+  String expression = "";
+  double equationFontSize = 38.0;
+  double resultFontSize = 48.0;
+
+  buttonPressed(String buttonText){
+    setState(() {
+      if(buttonText == "C"){
+        equation = "0";
+        result = "0";
+        equationFontSize = 38.0;
+        resultFontSize = 48.0;
+      }
+
+      else if(buttonText == "⌫"){
+        equationFontSize = 48.0;
+        resultFontSize = 38.0;
+        equation = equation.substring(0, equation.length - 1);
+        if(equation == ""){
+          equation = "0";
+        }
+      }
+
+      else if(buttonText == "="){
+        equationFontSize = 38.0;
+        resultFontSize = 48.0;
+
+        expression = equation;
+        expression = expression.replaceAll('×', '*');
+        expression = expression.replaceAll('÷', '/');
+
+        try{
+          Parser p = Parser();
+          Expression exp = p.parse(expression);
+
+          ContextModel cm = ContextModel();
+          result = '${exp.evaluate(EvaluationType.REAL, cm)}';
+        }catch(e){
+          result = "Error";
+        }
+
+      }
+
+      else{
+        equationFontSize = 48.0;
+        resultFontSize = 38.0;
+        if(equation == "0"){
+          equation = buttonText;
+        }else {
+          equation = equation + buttonText;
+        }
+      }
+    });
+  }
+
+  Widget buildButton(String buttonText, double buttonHeight, Color buttonColor){
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.1 * buttonHeight,
+      color: buttonColor,
+      child: FlatButton(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(0.0),
+              side: BorderSide(
+                  color: Colors.white,
+                  width: 1,
+                  style: BorderStyle.solid
+              )
           ),
-          body: Column(
-            // ignore: prefer_const_literals_to_create_immutables
-            children: [
-              TextField(
-                controller: nametec,
-                decoration: InputDecoration(
-                  hintText: "Name",
-                  labelText: "Name",
-                ),
-                keyboardType: TextInputType.text,
-              ),
-              TextField(
-                controller: cptec,
-                decoration: InputDecoration(
-                  hintText: "Cellphone Number",
-                  labelText: "Cp Number",
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              TextField(
-                controller: emailtec,
-                decoration: InputDecoration(
-                  hintText: "Email Address",
-                  labelText: "Email",
-                ),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      var name = nametec.text;
-                      var cp = cptec.text;
-                      var email = emailtec.text;
+          padding: EdgeInsets.all(16.0),
+          onPressed: () => buttonPressed(buttonText),
+          child: Text(
+            buttonText,
+            style: TextStyle(
+                fontSize: 30.0,
+                fontWeight: FontWeight.normal,
+                color: Colors.white
+            ),
+          )
+      ),
+    );
+  }
 
-                      var all = name + ',' + cp + ',' + email;
 
-                      sh.writeToFile(all);
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Simple Calculator')),
+      body: Column(
+        children: <Widget>[
 
-                      print("Name:" + name);
-                      print("Name:" + cp);
-                      print("Name:" + email);
-                    },
-                    child: Text('Submit'),
-                  ),
-                ],
+
+          Container(
+            alignment: Alignment.centerRight,
+            padding: EdgeInsets.fromLTRB(10, 20, 10, 0),
+            child: Text(equation, style: TextStyle(fontSize: equationFontSize),),
+          ),
+
+
+          Container(
+            alignment: Alignment.centerRight,
+            padding: EdgeInsets.fromLTRB(10, 30, 10, 0),
+            child: Text(result, style: TextStyle(fontSize: resultFontSize),),
+          ),
+
+
+          Expanded(
+            child: Divider(),
+          ),
+
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Container(
+                width: MediaQuery.of(context).size.width * .75,
+                child: Table(
+                  children: [
+                    TableRow(
+                      children: [
+                        buildButton("C", 1, Colors.redAccent),
+                        buildButton("⌫", 1, Colors.blue),
+                        buildButton("÷", 1, Colors.blue),
+                      ]
+                    ),
+
+                    TableRow(
+                        children: [
+                          buildButton("7", 1, Colors.black54),
+                          buildButton("8", 1, Colors.black54),
+                          buildButton("9", 1, Colors.black54),
+                        ]
+                    ),
+
+                    TableRow(
+                        children: [
+                          buildButton("4", 1, Colors.black54),
+                          buildButton("5", 1, Colors.black54),
+                          buildButton("6", 1, Colors.black54),
+                        ]
+                    ),
+
+                    TableRow(
+                        children: [
+                          buildButton("1", 1, Colors.black54),
+                          buildButton("2", 1, Colors.black54),
+                          buildButton("3", 1, Colors.black54),
+                        ]
+                    ),
+
+                    TableRow(
+                        children: [
+                          buildButton(".", 1, Colors.black54),
+                          buildButton("0", 1, Colors.black54),
+                          buildButton("00", 1, Colors.black54),
+                        ]
+                    ),
+                  ],
+                ),
+              ),
+
+
+              Container(
+                width: MediaQuery.of(context).size.width * 0.25,
+                child: Table(
+                  children: [
+                    TableRow(
+                        children: [
+                          buildButton("×", 1, Colors.blue),
+                        ]
+                    ),
+
+                    TableRow(
+                        children: [
+                          buildButton("-", 1, Colors.blue),
+                        ]
+                    ),
+
+                    TableRow(
+                        children: [
+                          buildButton("+", 1, Colors.blue),
+                        ]
+                    ),
+
+                    TableRow(
+                        children: [
+                          buildButton("=", 2, Colors.redAccent),
+                        ]
+                    ),
+                  ],
+                ),
               )
             ],
-          )),
+          ),
+
+        ],
+      ),
     );
   }
 }
